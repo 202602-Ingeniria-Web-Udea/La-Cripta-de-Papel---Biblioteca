@@ -1,27 +1,40 @@
+
 import React from 'react';
-import { Button } from '@/components/ui/button';
+import { cookies } from 'next/headers';
 import { TableActions } from '@/components/users/table';
 import { DialogDemo } from '@/components/users/dialog';
 
-type users = {
+type User = {
   id: string;
   name: string;
-  lastName: string;
+  lastName: string | null;
   email: string;
   enabled: boolean;
-  deleted: boolean;
   role: 'ADMIN' | 'USER';
-  createdAt: Date;
+  createdAt: string;
 };
 
-async function getUsers(): Promise<users[]> {
-  const response = await fetch('http://localhost:3000/api/users');
+async function getUsers(): Promise<User[]> {
+  const cookieStore = await cookies();
+
+  const response = await fetch('http://localhost:3000/api/users', {
+    headers: {
+      Cookie: cookieStore.toString(),
+    },
+    cache: 'no-store',
+  });
+
+  if (!response.ok) {
+    throw new Error('No fue posible consultar los usuarios.');
+  }
+
   const data = await response.json();
+
   return data.users;
 }
 
 export default async function Users() {
-  const Data = await getUsers();
+  const data = await getUsers();
 
   return (
     <div>
@@ -33,8 +46,9 @@ export default async function Users() {
           <DialogDemo />
         </div>
       </div>
+
       <div>
-        <TableActions users={Data} />
+        <TableActions users={data} />
       </div>
     </div>
   );

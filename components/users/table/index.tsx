@@ -1,4 +1,6 @@
+
 import { MoreHorizontalIcon } from 'lucide-react';
+import Link from 'next/link';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -17,20 +19,17 @@ import {
   TableRow,
 } from '@/components/ui/table';
 
-type users = {
+type User = {
   id: string;
   name: string;
-  lastName: string;
+  lastName: string | null;
   email: string;
   enabled: boolean;
-  deleted: boolean;
   role: 'ADMIN' | 'USER';
-  createdAt: Date;
+  createdAt: string;
 };
-import Link from 'next/link';
 
-export function TableActions({ users }: { users: any }) {
-  console.log('users :>> ', users);
+export function TableActions({ users }: { users: User[] }) {
   return (
     <Table>
       <TableHeader>
@@ -43,15 +42,17 @@ export function TableActions({ users }: { users: any }) {
           <TableHead className='text-right'>Actions</TableHead>
         </TableRow>
       </TableHeader>
+
       <TableBody>
-        {users.length ? (
-          users.map((user: users) => (
-            <TableRow id={user.id}>
+        {users.length > 0 ? (
+          users.map((user) => (
+            <TableRow key={user.id}>
               <TableCell className='font-medium'>{user.name}</TableCell>
-              <TableCell>{user.lastName}</TableCell>
+              <TableCell>{user.lastName ?? '—'}</TableCell>
               <TableCell>{user.email}</TableCell>
-              <TableCell>{user.enabled}</TableCell>
+              <TableCell>{user.enabled ? 'Sí' : 'No'}</TableCell>
               <TableCell>{user.role}</TableCell>
+
               <TableCell className='text-right'>
                 <DropdownMenu>
                   <DropdownMenuTrigger
@@ -62,12 +63,17 @@ export function TableActions({ users }: { users: any }) {
                       </Button>
                     }
                   />
+
                   <DropdownMenuContent align='end'>
                     <Link href={`/users/${user.id}`}>
                       <DropdownMenuItem>Edit</DropdownMenuItem>
                     </Link>
+
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem variant='destructive'>Delete</DropdownMenuItem>
+
+                    <DropdownMenuItem variant='destructive'>
+                      Delete
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </TableCell>
@@ -75,7 +81,9 @@ export function TableActions({ users }: { users: any }) {
           ))
         ) : (
           <TableRow>
-            <TableCell className='h-24 text-center'>No results.</TableCell>
+            <TableCell colSpan={6} className='h-24 text-center'>
+              No results.
+            </TableCell>
           </TableRow>
         )}
       </TableBody>

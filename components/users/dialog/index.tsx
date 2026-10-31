@@ -1,4 +1,12 @@
 'use client';
+
+import * as React from 'react';
+import * as z from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Controller, useForm } from 'react-hook-form';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -17,12 +25,7 @@ import {
   FieldGroup,
   FieldLabel,
 } from '@/components/ui/field';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import * as z from 'zod';
-import { Controller, useForm } from 'react-hook-form';
-import { toast } from 'sonner';
 import {
   Select,
   SelectContent,
@@ -32,38 +35,44 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import React from 'react';
 import { Spinner } from '@/components/ui/spinner';
-import { useRouter } from 'next/navigation';
 
 const items = [
-  { label: 'Administrator', value: 'ADMIN' },
-  { label: 'User', value: 'USER' },
-];
+  { label: 'Administrador', value: 'ADMIN' },
+  { label: 'Usuario', value: 'USER' },
+] as const;
 
 const formSchema = z.object({
-  name: z.string().min(2, 'name  must be at least 2 characters.'),
+  name: z.string().trim().min(2, 'El nombre debe tener al menos 2 caracteres.'),
   lastName: z.string(),
-  email: z.email(),
-  role: z.string().min(1, 'Please select your role.'),
+  email: z.email('Ingresa un correo electrónico válido.'),
+  password: z.string().min(8, 'La contraseña debe tener al menos 8 caracteres.'),
+  role: z.enum(['ADMIN', 'USER'], {
+    error: 'Selecciona un rol válido.',
+  }),
 });
 
+type FormValues = z.infer<typeof formSchema>;
+
 export function DialogDemo() {
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: '',
       lastName: '',
       email: '',
-      role: '',
+      password: '',
+      role: 'USER',
     },
   });
 
   const [loading, setLoading] = React.useState(false);
-  const router = useRouter();
   const [open, setOpen] = React.useState(false);
-  async function onSubmit(data: z.infer<typeof formSchema>) {
+  const router = useRouter();
+
+  async function onSubmit(data: FormValues) {
     setLoading(true);
+
     try {
       const response = await fetch('/api/user', {
         method: 'POST',
@@ -71,106 +80,176 @@ export function DialogDemo() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ user: data }),
-      }).then((res) => {
-        toast.success('User created successfully');
-        setLoading(false);
-        router.push('/users');
-        setOpen(false);
-        return res;
       });
 
+      const result = await response.json();
+
       if (!response.ok) {
-        setLoading(false);
-        throw new Error('Failed to create user');
+        throw new Error(
+          typeof result.error === 'string'
+            ? result.error
+            : 'No fue posible crear el usuario.',
+        );
       }
+
+      toast.success('Usuario creado correctamente.');
+      form.reset();
+      setOpen(false);
+      router.refresh();
+      router.push('/users');
     } catch (error) {
-      console.error('Error submitting  form', error);
-      toast.error('Failed to create user, Please try again');
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Ocurrió un error inesperado.';
+
+      toast.error(message);
+    } finally {
       setLoading(false);
     }
   }
 
+  function handleOpenChange(nextOpen: boolean) {
+    if (loading) return;
+
+    setOpen(nextOpen);
+
+    if (!nextOpen) {
+      form.reset();
+    }
+  }
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <form id='form-rhf-demo' onSubmit={form.handleSubmit(onSubmit)}>
-        <DialogTrigger render={<Button type='button'>CREAR USUARIO</Button>} />
-        <DialogContent className='sm:max-w-sm'>
-          <DialogHeader>
-            <DialogTitle>Create User</DialogTitle>
-            <DialogDescription>
-              Make changes to your profile here. Click save when you&apos;re done.
-            </DialogDescription>
-          </DialogHeader>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogTrigger
+        render={<Button type="button">Crear usuario</Button>}
+      />
+
+      <DialogContent className="sm:max-w-sm">
+        <DialogHeader>
+          <DialogTitle>Crear usuario</DialogTitle>
+          <DialogDescription>
+            Registra un usuario para el sistema de gestión de biblioteca.
+          </DialogDescription>
+        </DialogHeader>
+
+        <form
+          id="form-rhf-demo"
+          onSubmit={form.handleSubmit(onSubmit)}
+        >
           <FieldGroup>
             <Controller
-              name='name'
+              name="name"
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <Label htmlFor='name-1'>Name</Label>
+                  <FieldLabel htmlFor="name-1">Nombre</FieldLabel>
                   <Input
                     {...field}
+                    id="name-1"
+                    autoComplete="given-name"
                     aria-invalid={fieldState.invalid}
-                    id='name-1'
-                    name='name'
-                    defaultValue='Pedro'
+                    disabled={loading}
                   />
-                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
                 </Field>
               )}
             />
+
             <Controller
-              name='lastName'
+              name="lastName"
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <Label htmlFor='lastName-1'>LastName</Label>
+                  <FieldLabel htmlFor="lastName-1">Apellido</FieldLabel>
                   <Input
                     {...field}
+                    id="lastName-1"
+                    autoComplete="family-name"
                     aria-invalid={fieldState.invalid}
-                    id='lastName-1'
-                    name='lastName'
-                    defaultValue='Duarte'
+                    disabled={loading}
                   />
-                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
                 </Field>
               )}
             />
+
             <Controller
-              name='email'
+              name="email"
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <Label htmlFor='email-1'>Email</Label>
+                  <FieldLabel htmlFor="email-1">Correo electrónico</FieldLabel>
                   <Input
                     {...field}
+                    id="email-1"
+                    type="email"
+                    autoComplete="email"
                     aria-invalid={fieldState.invalid}
-                    id='email-1'
-                    type='email'
-                    name='email'
-                    defaultValue='Duarte@example.com'
+                    disabled={loading}
                   />
-                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
                 </Field>
               )}
             />
+
             <Controller
-              name='role'
+              name="password"
               control={form.control}
               render={({ field, fieldState }) => (
-                <Field orientation='responsive' data-invalid={fieldState.invalid}>
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="password-1">Contraseña inicial</FieldLabel>
+                  <Input
+                    {...field}
+                    id="password-1"
+                    type="password"
+                    autoComplete="new-password"
+                    aria-invalid={fieldState.invalid}
+                    disabled={loading}
+                  />
+                  <FieldDescription>
+                    Debe tener al menos 8 caracteres.
+                  </FieldDescription>
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
+            />
+
+            <Controller
+              name="role"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
                   <FieldContent>
-                    <FieldLabel htmlFor='form-rhf-select-language'>Role</FieldLabel>
-                    <FieldDescription>Select Role.</FieldDescription>
-                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    <FieldLabel htmlFor="role-1">Rol</FieldLabel>
+                    <FieldDescription>
+                      Define los permisos del usuario.
+                    </FieldDescription>
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
                   </FieldContent>
-                  <Select name={field.name} value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger className='w-full max-w-48'>
-                      <SelectValue />
+
+                  <Select
+                    name={field.name}
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    disabled={loading}
+                  >
+                    <SelectTrigger id="role-1" className="w-full">
+                      <SelectValue placeholder="Selecciona un rol" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        <SelectLabel>Role</SelectLabel>
+                        <SelectLabel>Rol</SelectLabel>
                         {items.map((item) => (
                           <SelectItem key={item.value} value={item.value}>
                             {item.label}
@@ -183,24 +262,34 @@ export function DialogDemo() {
               )}
             />
           </FieldGroup>
-          <DialogFooter>
-            <Field orientation='horizontal'>
-              {!loading ? (
-                <>
-                  <Button type='button' variant='outline' onClick={() => form.reset()}>
-                    Reset
-                  </Button>
-                  <Button type='submit' form='form-rhf-demo'>
-                    Submit
-                  </Button>
-                </>
-              ) : (
-                <Spinner className='size-8' />
-              )}
-            </Field>
-          </DialogFooter>
-        </DialogContent>
-      </form>
+        </form>
+
+        <DialogFooter>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={loading}
+            onClick={() => form.reset()}
+          >
+            Limpiar
+          </Button>
+
+          <Button
+            type="submit"
+            form="form-rhf-demo"
+            disabled={loading}
+          >
+            {loading ? (
+              <>
+                <Spinner className="size-4" />
+                Creando...
+              </>
+            ) : (
+              'Crear usuario'
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }

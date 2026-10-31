@@ -3,6 +3,7 @@
 
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
+
 generator client {
   provider = "prisma-client"
   output   = "../generated/prisma"
@@ -17,140 +18,129 @@ enum Enum_Role {
   USER
 }
 
-enum Enum_Order_Status {
-  PENDING
-  COMPLETED
-  PAID
-  DELIVERED
-  CANCELED
-  SHIPPED
+enum Enum_Loan_Status {
+  REQUESTED
+  APPROVED
+  REJECTED
+  RETURNED
 }
 
-enum Enum_PaymentMethod {
-  CREDIT_CARD
-  DEBIT_CARD
-  PAYPAL
-  CASH
-}
-
-enum Enum_PaymentStatus {
-  PENDING
-  COMPLETED
-  FAILED
-  REFUNDED
+enum Enum_Movement_Type {
+  INITIAL
+  ENTRY
+  EXIT
 }
 
 model User {
-  id        String    @id @default(cuid())
-  name      String
-  email     String    @unique
-  lastName  String?
-  password  String
-  deleted   Boolean   @default(false)
-  enabled   Boolean   @default(true)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  role      Enum_Role @default(USER)
-  profile   Profile?
-}
+  id           String    @id @default(cuid())
+  name         String
+  lastName     String?
+  email        String    @unique
+  passwordHash String
+  role         Enum_Role @default(USER)
+  enabled      Boolean   @default(true)
+  deleted      Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
-model Customer {
-  id        String   @id @default(cuid())
-  name      String
-  email     String   @unique
-  phone     String
-  address   String
-  deleted   Boolean  @default(false)
-  enabled   Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  orders    Order[]
-}
+  loans               Loan[]
+  createdBooks        Book[]             @relation("BookCreator")
+  inventoryMovements  InventoryMovement[]
 
-model Profile {
-  id        String   @id @default(cuid())
-  address   String
-  phone     String
-  image     String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  user      User     @relation(fields: [userId], references: [id])
-  userId    String   @unique
-}
-
-model Product {
-  id          String      @id @default(cuid())
-  name        String
-  description String
-  price       Float
-  cantidad    Int
-  codigo      Int
-  deleted     Boolean     @default(false)
-  enabled     Boolean     @default(true)
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  categories  Category[]
-  suppliers   Supplier[]
-  orderItems  OrderItem[]
+  @@index([role, enabled])
 }
 
 model Category {
-  id          String    @id @default(cuid())
-  name        String
-  description String
-  deleted     Boolean   @default(false)
-  enabled     Boolean   @default(true)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  products    Product[]
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  enabled     Boolean  @default(true)
+  deleted     Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  books       Book[]
 }
 
-model Supplier {
-  id          String    @id @default(cuid())
-  name        String
-  description String
-  deleted     Boolean   @default(false)
-  enabled     Boolean   @default(true)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  products    Product[]
+model Book {
+  id          String   @id @default(cuid())
+  title       String
+  author      String
+  isbn        String?  @unique
+  description String?
+  totalCopies Int      @default(1)
+  enabled     Boolean  @default(true)
+  deleted     Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id])
+
+  createdById String?
+  createdBy   User?    @relation("BookCreator", fields: [createdById], references: [id])
+
+  loanItems           LoanItem[]
+  inventoryMovements  InventoryMovement[]
+
+  @@index([title])
+  @@index([author])
+  @@index([categoryId])
+  @@index([createdById])
 }
 
-model Order {
-  id             String            @id @default(cuid())
-  orderDate      DateTime          @default(now())
-  subTotalAmount Float
-  taxAmount      Float
-  totalAmount    Float
-  status         Enum_Order_Status
-  createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @updatedAt
-  customer       Customer          @relation(fields: [customerId], references: [id])
-  customerId     String
-  orderItems     OrderItem[]
-  payment        Payment?
+model Loan {
+  id          String           @id @default(cuid())
+  status      Enum_Loan_Status @default(REQUESTED)
+  requestedAt DateTime         @default(now())
+  approvedAt  DateTime?
+  dueDate     DateTime?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  userId      String
+  user        User             @relation(fields: [userId], references: [id])
+  items       LoanItem[]
+
+  @@index([userId, status])
+  @@index([status, requestedAt])
 }
 
-model OrderItem {
-  id        String   @id @default(cuid())
+model LoanItem {
+  id         String   @id @default(cuid())
+  quantity   Int      @default(1)
+  returnedAt DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  loanId     String
+  loan       Loan     @relation(fields: [loanId], references: [id])
+
+  bookId     String
+  book       Book     @relation(fields: [bookId], references: [id])
+
+  inventoryMovements InventoryMovement[]
+
+  @@unique([loanId, bookId])
+  @@index([bookId, returnedAt])
+}
+
+model InventoryMovement {
+  id        String              @id @default(cuid())
+  type      Enum_Movement_Type
   quantity  Int
-  price     Float
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  productId String
-  product   Product  @relation(fields: [productId], references: [id])
-  orderId   String
-  order     Order    @relation(fields: [orderId], references: [id])
-}
+  createdAt DateTime            @default(now())
 
-model Payment {
-  id          String             @id @default(cuid())
-  paymentDate DateTime           @default(now())
-  amount      Float
-  method      Enum_PaymentMethod
-  status      Enum_PaymentStatus @default(PENDING)
-  createdAt   DateTime           @default(now())
-  updatedAt   DateTime           @updatedAt
-  oderId      String             @unique
-  order       Order              @relation(fields: [oderId], references: [id])
+  bookId    String
+  book      Book                @relation(fields: [bookId], references: [id])
+
+  userId    String
+  user      User                @relation(fields: [userId], references: [id])
+
+  loanItemId String?
+  loanItem   LoanItem?          @relation(fields: [loanItemId], references: [id])
+
+  @@unique([loanItemId, type])
+  @@index([bookId, createdAt])
+  @@index([userId])
 }

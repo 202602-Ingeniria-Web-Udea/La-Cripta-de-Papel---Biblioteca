@@ -1,36 +1,123 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# La Cripta de Papel — Biblioteca del Terror
 
-## Getting Started
+Aplicación web para la gestión de una biblioteca especializada en literatura de terror. Permite administrar libros, categorías, usuarios, préstamos y movimientos de inventario desde una interfaz centralizada.
 
-First, run the development server:
+## Integrantes
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- Juan Diego Muñetón Herrera
+
+## Funcionalidades
+
+- **Autenticación:** inicio y cierre de sesión.
+- **Gestión de usuarios:** administración de cuentas y roles.
+- **Gestión de libros:** creación, consulta, edición y eliminación de libros.
+- **Gestión de categorías:** organización de los libros por categorías.
+- **Gestión de préstamos:** solicitudes, aprobación, rechazo y devolución de libros.
+- **Control de inventario:** registro de entradas y salidas, y consulta de existencias.
+
+### Roles
+
+- **Administrador (ADMIN):** acceso a las funcionalidades administrativas y gestión de la biblioteca.
+- **Usuario (USER):** acceso a las funcionalidades habilitadas para usuarios, incluyendo las solicitudes de préstamo.
+
+## Tecnologías utilizadas
+
+- [Next.js](https://nextjs.org/) 16
+- [React](https://react.dev/) 19
+- [TypeScript](https://www.typescriptlang.org/)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [Prisma ORM](https://www.prisma.io/)
+- [Supabase](https://supabase.com/) — PostgreSQL
+- [Vercel](https://vercel.com/) — despliegue
+
+## Requisitos previos
+
+Para ejecutar el proyecto localmente se necesita:
+
+- Node.js y npm.
+- Una instancia de PostgreSQL disponible mediante Supabase.
+- Acceso a las variables de conexión de la base de datos.
+
+## Instalación y ejecución local
+
+1. Clonar el repositorio:
+
+   ```bash
+   git clone https://github.com/202602-Ingeniria-Web-Udea/La-Cripta-de-Papel---Biblioteca.git
+   cd La-Cripta-de-Papel---Biblioteca
+   ```
+
+2. Instalar las dependencias:
+
+   ```bash
+   npm install
+   ```
+
+3. Crear un archivo `.env` en la raíz del proyecto y configurar la conexión a PostgreSQL:
+
+   ```env
+   DATABASE_URL="TU_CADENA_DE_CONEXION"
+   ```
+
+   Reemplazar el valor de ejemplo por la cadena de conexión correspondiente a la base de datos de Supabase.
+
+4. Generar el cliente de Prisma:
+
+   ```bash
+   npx prisma generate
+   ```
+
+5. Aplicar las migraciones pendientes:
+
+   ```bash
+   npx prisma migrate deploy
+   ```
+
+6. Iniciar el servidor de desarrollo:
+
+   ```bash
+   npm run dev
+   ```
+
+7. Abrir [http://localhost:3000](http://localhost:3000) en el navegador.
+
+## Base de datos
+
+El proyecto utiliza PostgreSQL administrado mediante Supabase y Prisma ORM.
+
+El esquema se encuentra en:
+
+```text
+prisma/schema.prisma
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Las migraciones se encuentran en:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```text
+prisma/migrations/
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+La variable `DATABASE_URL` debe configurarse en el entorno de ejecución. No se deben publicar archivos `.env` ni credenciales reales en el repositorio.
 
-## Learn More
+## Usuarios de demostración
 
-To learn more about Next.js, take a look at the following resources:
+Las siguientes cuentas están destinadas exclusivamente a la evaluación de la aplicación:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Rol | Correo electrónico | Contraseña |
+|---|---|---|
+| Administrador | [diego.muneton@udea.edu.co] | [terror666] |
+| Usuario | [jdmherrera1187@gmail.com] | [probando] |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Estas cuentas deben estar creadas y habilitadas en la base de datos utilizada por el despliegue.
 
-## Deploy on Vercel
+## Despliegue
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+La aplicación está preparada para desplegarse en Vercel.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**URL de producción:** Pendiente de despliegue en Vercel.
+
+Para el despliegue se debe configurar `DATABASE_URL` en las variables de entorno de Vercel y ejecutar las migraciones pendientes sobre la base de datos de producción.
+
+## Licencia
+
+Proyecto académico desarrollado como parte del curso de Ingeniería Web de la Universidad de Antioquia.

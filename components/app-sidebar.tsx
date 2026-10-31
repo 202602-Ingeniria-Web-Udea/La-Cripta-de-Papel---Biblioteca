@@ -1,11 +1,17 @@
 'use client';
 
 import * as React from 'react';
+import { usePathname } from 'next/navigation';
+import {
+  IconBook,
+  IconArrowsExchange,
+  IconHome,
+  IconUsers,
+  IconClipboardList,
+} from '@tabler/icons-react';
 
 import { NavMain } from '@/components/nav-main';
-import { NavProjects } from '@/components/nav-projects';
 import { NavUser } from '@/components/nav-user';
-import { TeamSwitcher } from '@/components/team-switcher';
 import {
   Sidebar,
   SidebarContent,
@@ -13,162 +19,102 @@ import {
   SidebarHeader,
   SidebarRail,
 } from '@/components/ui/sidebar';
-import {
-  IconLayoutRows,
-  IconWaveSine,
-  IconCommand,
-  IconTerminal2,
-  IconRobot,
-  IconBook,
-  IconSettings,
-  IconFrame,
-  IconChartPie,
-  IconMap,
-} from '@tabler/icons-react';
 
-// This is sample data.
-const data = {
+type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
   user: {
-    name: 'shadcn',
-    email: 'm@example.com',
-    avatar: '/avatars/shadcn.jpg',
-  },
-  teams: [
+    name: string;
+    lastName: string | null;
+    email: string;
+    role: 'ADMIN' | 'USER';
+  };
+};
+
+export function AppSidebar({
+  user,
+  ...props
+}: AppSidebarProps) {
+  const pathname = usePathname();
+
+  const navItems = [
     {
-      name: 'Acme Inc',
-      logo: <IconLayoutRows />,
-      plan: 'Enterprise',
+      title: 'Inicio',
+      url: '/home',
+      icon: <IconHome />,
     },
     {
-      name: 'Acme Corp.',
-      logo: <IconWaveSine />,
-      plan: 'Startup',
+      title: 'Transacciones',
+      url: '/transactions',
+      icon: <IconArrowsExchange />,
     },
     {
-      name: 'Evil Corp.',
-      logo: <IconCommand />,
-      plan: 'Free',
-    },
-  ],
-  navMain: [
-    {
-      title: 'Playground',
-      url: '#',
-      icon: <IconTerminal2 />,
-      isActive: true,
-      items: [
-        {
-          title: 'History',
-          url: '#',
-        },
-        {
-          title: 'Starred',
-          url: '#',
-        },
-        {
-          title: 'Settings',
-          url: '#',
-        },
-      ],
+      title: 'Préstamos',
+      url: '/loans',
+      icon: <IconClipboardList />,
     },
     {
       title: 'Maestros',
-      url: '#',
-      icon: <IconRobot />,
+      url: '/books',
+      icon: <IconBook />,
       items: [
+        { title: 'Libros', url: '/books' },
+        { title: 'Categorías', url: '/categories' },
+      ],
+    },
+    ...(user.role === 'ADMIN'
+      ? [
         {
           title: 'Usuarios',
           url: '/users',
+          icon: <IconUsers />,
         },
-        {
-          title: 'Explorer',
-          url: '#',
-        },
-        {
-          title: 'Quantum',
-          url: '#',
-        },
-      ],
-    },
-    {
-      title: 'Documentation',
-      url: '#',
-      icon: <IconBook />,
-      items: [
-        {
-          title: 'Introduction',
-          url: '#',
-        },
-        {
-          title: 'Get Started',
-          url: '#',
-        },
-        {
-          title: 'Tutorials',
-          url: '#',
-        },
-        {
-          title: 'Changelog',
-          url: '#',
-        },
-      ],
-    },
-    {
-      title: 'Settings',
-      url: '#',
-      icon: <IconSettings />,
-      items: [
-        {
-          title: 'General',
-          url: '#',
-        },
-        {
-          title: 'Team',
-          url: '#',
-        },
-        {
-          title: 'Billing',
-          url: '#',
-        },
-        {
-          title: 'Limits',
-          url: '#',
-        },
-      ],
-    },
-  ],
-  projects: [
-    {
-      name: 'Design Engineering',
-      url: '#',
-      icon: <IconFrame />,
-    },
-    {
-      name: 'Sales & Marketing',
-      url: '#',
-      icon: <IconChartPie />,
-    },
-    {
-      name: 'Travel',
-      url: '#',
-      icon: <IconMap />,
-    },
-  ],
-};
+      ]
+      : []),
+  ].map((item) => {
+    const subItems =
+      'items' in item
+        ? item.items?.map((subItem) => ({
+          ...subItem,
+          isActive:
+            pathname === subItem.url ||
+            pathname.startsWith(`${subItem.url}/`),
+        }))
+        : undefined;
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+    return {
+      ...item,
+      items: subItems,
+      isActive:
+        pathname === item.url ||
+        Boolean(subItems?.some((subItem) => subItem.isActive)),
+    };
+  });
+
   return (
-    <Sidebar collapsible='icon' {...props}>
+    <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+        <div className="px-2 py-3">
+          <div className="font-semibold">Biblioteca del Terror</div>
+          <div className="text-xs text-muted-foreground">
+            Sistema de gestión
+          </div>
+        </div>
       </SidebarHeader>
+
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
+        <NavMain items={navItems} />
       </SidebarContent>
+
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser
+          user={{
+            name: `${user.name} ${user.lastName ?? ''}`.trim(),
+            email: user.email,
+            role: user.role,
+            avatar: '',
+          }}
+        />
       </SidebarFooter>
+
       <SidebarRail />
     </Sidebar>
   );
