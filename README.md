@@ -72,8 +72,6 @@ Para ejecutar el proyecto localmente se necesita:
    SESSION_SECRET="4e56e96b8df809c5ee0749da8331eabe81559522a33c4cac7866176141652625"
    ```
 
-   Reemplazar los valores de ejemplo por los correspondientes al entorno local. No compartir ni publicar estos valores.
-
 4. **Generar el cliente de Prisma:**
 
    ```bash
@@ -114,8 +112,6 @@ prisma/migrations/
 
 La conexión a la base de datos se configura mediante `DATABASE_URL`. La variable `SESSION_SECRET` se utiliza para la gestión de sesiones.
 
-No se deben publicar archivos `.env` ni credenciales reales en el repositorio.
-
 ## Usuarios de demostración
 
 Las siguientes cuentas están destinadas a la evaluación de la aplicación:
@@ -124,8 +120,6 @@ Las siguientes cuentas están destinadas a la evaluación de la aplicación:
 |---|---|---|
 | Administrador (ADMIN) | diego.muneton@udea.edu.co | terror666 |
 | Usuario (USER) | jdmherrera1187@gmail.com | probando |
-
-Las contraseñas de demostración deben actualizarse antes de la entrega y corresponder a cuentas habilitadas en la base de datos utilizada por el despliegue.
 
 ## Despliegue
 
