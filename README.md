@@ -6,6 +6,16 @@ Aplicación web para la gestión de una biblioteca especializada en literatura d
 
 - Juan Diego Muñetón Herrera
 
+## Aplicación desplegada
+
+**URL de producción:**
+
+https://la-cripta-de-papel-biblioteca-8hsvte3l0.vercel.app/
+
+## Repositorio
+
+[La Cripta de Papel — Biblioteca del Terror](https://github.com/202602-Ingeniria-Web-Udea/La-Cripta-de-Papel---Biblioteca)
+
 ## Funcionalidades
 
 - **Autenticación:** inicio y cierre de sesión.
@@ -40,52 +50,57 @@ Para ejecutar el proyecto localmente se necesita:
 
 ## Instalación y ejecución local
 
-1. Clonar el repositorio:
+1. **Clonar el repositorio:**
 
    ```bash
    git clone https://github.com/202602-Ingeniria-Web-Udea/La-Cripta-de-Papel---Biblioteca.git
    cd La-Cripta-de-Papel---Biblioteca
    ```
 
-2. Instalar las dependencias:
+2. **Instalar las dependencias:**
 
    ```bash
    npm install
    ```
 
-3. Crear un archivo `.env` en la raíz del proyecto y configurar la conexión a PostgreSQL:
+3. **Configurar las variables de entorno:**
+
+   Crear un archivo `.env` en la raíz del proyecto:
 
    ```env
-   DATABASE_URL="TU_CADENA_DE_CONEXION"
+   DATABASE_URL="postgresql://postgres.hyqnooatugpasbhijbgb:Porqueria_2187@aws-0-us-east-1.pooler.supabase.com:5432/postgres"
+   SESSION_SECRET="4e56e96b8df809c5ee0749da8331eabe81559522a33c4cac7866176141652625"
    ```
 
-   Reemplazar el valor de ejemplo por la cadena de conexión correspondiente a la base de datos de Supabase.
+   Reemplazar los valores de ejemplo por los correspondientes al entorno local. No compartir ni publicar estos valores.
 
-4. Generar el cliente de Prisma:
+4. **Generar el cliente de Prisma:**
 
    ```bash
    npx prisma generate
    ```
 
-5. Aplicar las migraciones pendientes:
+5. **Aplicar las migraciones pendientes:**
 
    ```bash
    npx prisma migrate deploy
    ```
 
-6. Iniciar el servidor de desarrollo:
+6. **Iniciar el servidor de desarrollo:**
 
    ```bash
    npm run dev
    ```
 
-7. Abrir [http://localhost:3000](http://localhost:3000) en el navegador.
+7. **Abrir la aplicación en el navegador:**
+
+   http://localhost:3000
 
 ## Base de datos
 
 El proyecto utiliza PostgreSQL administrado mediante Supabase y Prisma ORM.
 
-El esquema se encuentra en:
+El esquema de datos se encuentra en:
 
 ```text
 prisma/schema.prisma
@@ -97,26 +112,41 @@ Las migraciones se encuentran en:
 prisma/migrations/
 ```
 
-La variable `DATABASE_URL` debe configurarse en el entorno de ejecución. No se deben publicar archivos `.env` ni credenciales reales en el repositorio.
+La conexión a la base de datos se configura mediante `DATABASE_URL`. La variable `SESSION_SECRET` se utiliza para la gestión de sesiones.
+
+No se deben publicar archivos `.env` ni credenciales reales en el repositorio.
 
 ## Usuarios de demostración
 
-Las siguientes cuentas están destinadas exclusivamente a la evaluación de la aplicación:
+Las siguientes cuentas están destinadas a la evaluación de la aplicación:
 
 | Rol | Correo electrónico | Contraseña |
 |---|---|---|
-| Administrador | [diego.muneton@udea.edu.co] | [terror666] |
-| Usuario | [jdmherrera1187@gmail.com] | [probando] |
+| Administrador (ADMIN) | diego.muneton@udea.edu.co | terror666 |
+| Usuario (USER) | jdmherrera1187@gmail.com | probando |
 
-Estas cuentas deben estar creadas y habilitadas en la base de datos utilizada por el despliegue.
+Las contraseñas de demostración deben actualizarse antes de la entrega y corresponder a cuentas habilitadas en la base de datos utilizada por el despliegue.
 
 ## Despliegue
 
-La aplicación está preparada para desplegarse en Vercel.
+La aplicación está desplegada en Vercel y utiliza Supabase como servicio de base de datos.
 
-**URL de producción:** Pendiente de despliegue en Vercel.
+Para configurar un nuevo entorno de despliegue se deben establecer las siguientes variables de entorno:
 
-Para el despliegue se debe configurar `DATABASE_URL` en las variables de entorno de Vercel y ejecutar las migraciones pendientes sobre la base de datos de producción.
+- `DATABASE_URL`
+- `SESSION_SECRET`
+
+El proceso de compilación genera automáticamente Prisma Client mediante el comando:
+
+```bash
+prisma generate && next build
+```
+
+Las migraciones pendientes deben aplicarse de forma controlada sobre la base de datos de destino mediante:
+
+```bash
+npx prisma migrate deploy
+```
 
 ## Licencia
 
